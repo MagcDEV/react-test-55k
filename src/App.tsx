@@ -5,6 +5,7 @@ function App (): React.JSX.Element {
   const [usersResponse, setUsersResponse] = useState<User[]>([])
   const [colorColumns, setColorColumns] = useState<boolean>(false)
   const [sortBycountry, setSortBycountry] = useState<boolean>(false)
+  const [filterCountry, setFilterCountry] = useState<string | null>(null)
   const originalUsers = useRef<User[]>([])
   useEffect(() => {
     async function getUsers (): Promise<void> {
@@ -33,7 +34,14 @@ function App (): React.JSX.Element {
     setUsersResponse(originalUsers.current)
   }
 
-  const sortedUsers = sortBycountry ? [...usersResponse].sort((a, b) => a.location.country.localeCompare(b.location.country)) : usersResponse
+  const handleFilter = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const { value } = e.target
+    setFilterCountry(value)
+  }
+
+  const filteredUsers = (filterCountry != null && filterCountry !== '') ? usersResponse.filter(user => user.location.country.toLowerCase().includes(filterCountry.toLowerCase())) : usersResponse
+
+  const sortedUsers = sortBycountry ? [...filteredUsers].sort((a, b) => a.location.country.localeCompare(b.location.country)) : filteredUsers
 
   return (
     <div className='bg-slate-700 text-white'>
@@ -44,7 +52,7 @@ function App (): React.JSX.Element {
         <button onClick={handleColorColumns} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>Colorear columnas</button>
         <button onClick={handleSortBycountry} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>{sortBycountry ? 'No ordenar por pais' : 'Ordenar por pais'}</button>
         <button onClick={handleReset} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>Resetear estado</button>
-        <input className='text-black' type="text" name="pais" placeholder='Filtrar por pais' />
+        <input onChange={handleFilter} className='text-black' type="text" name="pais" placeholder='Filtrar por pais' />
       </div>
       <div className="w-4/5 mx-auto overflow-hidden rounded-lg shadow-xs">
         <div className="w-full overflow-x-auto">
