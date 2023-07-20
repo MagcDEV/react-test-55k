@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { type User, type RandomUserResponse } from './types'
 
 function App (): React.JSX.Element {
@@ -39,9 +39,17 @@ function App (): React.JSX.Element {
     setFilterCountry(value)
   }
 
-  const filteredUsers = (filterCountry != null && filterCountry !== '') ? usersResponse.filter(user => user.location.country.toLowerCase().includes(filterCountry.toLowerCase())) : usersResponse
+  const filteredUsers = useMemo(() => {
+    return (filterCountry != null && filterCountry !== '')
+      ? usersResponse.filter(user => user.location.country.toLowerCase().includes(filterCountry.toLowerCase()))
+      : usersResponse
+  }, [usersResponse, filterCountry])
 
-  const sortedUsers = sortBycountry ? [...filteredUsers].sort((a, b) => a.location.country.localeCompare(b.location.country)) : filteredUsers
+  const sortedUsers = useMemo(() => {
+    if (!sortBycountry) return filteredUsers
+    console.log('sortedUsers')
+    return sortBycountry ? [...filteredUsers].sort((a, b) => a.location.country.localeCompare(b.location.country)) : filteredUsers
+  }, [sortBycountry, filteredUsers])
 
   return (
     <div className='bg-slate-700 text-white'>
@@ -67,7 +75,7 @@ function App (): React.JSX.Element {
               </tr>
             </thead>
             <tbody>
-              {sortedUsers.map((user, index) => (
+              {sortedUsers?.map((user, index) => (
                 <tr className={colorColumns && index % 2 === 0 ? 'bg-slate-800' : ''} key={user.login.uuid}>
                   <td className="px-4 py-3">
                     <img src={user.picture.large} alt="" className="w-10 h-10 rounded-full" />
