@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { type User, type RandomUserResponse } from './types'
+import { type User, type RandomUserResponse, SortBy } from './types'
 
 function App (): React.JSX.Element {
   const [usersResponse, setUsersResponse] = useState<User[]>([])
   const [colorColumns, setColorColumns] = useState<boolean>(false)
-  const [sortBycountry, setSortBycountry] = useState<boolean>(false)
+  const [sorting, setSorting] = useState<SortBy>(SortBy.NONE)
   const [filterCountry, setFilterCountry] = useState<string | null>(null)
   const originalUsers = useRef<User[]>([])
   useEffect(() => {
@@ -23,7 +23,8 @@ function App (): React.JSX.Element {
   }
 
   const handleSortBycountry = (): void => {
-    setSortBycountry(!sortBycountry)
+    const newSortingValue = sorting === SortBy.NONE ? SortBy.COUNTRY : SortBy.NONE
+    setSorting(newSortingValue)
   }
 
   const handleDelete = (id: string): void => {
@@ -46,10 +47,19 @@ function App (): React.JSX.Element {
   }, [usersResponse, filterCountry])
 
   const sortedUsers = useMemo(() => {
-    if (!sortBycountry) return filteredUsers
+    if (sorting === SortBy.NONE) return filteredUsers
     console.log('sortedUsers')
-    return sortBycountry ? [...filteredUsers].sort((a, b) => a.location.country.localeCompare(b.location.country)) : filteredUsers
-  }, [sortBycountry, filteredUsers])
+    if (sorting === SortBy.NAME) {
+      return [...filteredUsers].sort((a, b) => a.name.first.localeCompare(b.name.first))
+    }
+    if (sorting === SortBy.LAST) {
+      return [...filteredUsers].sort((a, b) => a.name.last.localeCompare(b.name.last))
+    }
+    if (sorting === SortBy.COUNTRY) {
+      return [...filteredUsers].sort((a, b) => a.location.country.localeCompare(b.location.country))
+    }
+    return filteredUsers
+  }, [sorting, filteredUsers])
 
   return (
     <div className='bg-slate-700 text-white'>
@@ -58,7 +68,7 @@ function App (): React.JSX.Element {
       </div>
       <div className='flex justify-center p-5 gap-3'>
         <button onClick={handleColorColumns} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>Colorear columnas</button>
-        <button onClick={handleSortBycountry} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>{sortBycountry ? 'No ordenar por pais' : 'Ordenar por pais'}</button>
+        <button onClick={handleSortBycountry} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>{sorting === SortBy.COUNTRY ? 'No ordenar por pais' : 'Ordenar por pais'}</button>
         <button onClick={handleReset} className='bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded'>Resetear estado</button>
         <input onChange={handleFilter} className='text-black' type="text" name="pais" placeholder='Filtrar por pais' />
       </div>
@@ -68,9 +78,9 @@ function App (): React.JSX.Element {
             <thead>
               <tr className="text-xs font-semibold tracking-wide text-left uppercase">
                 <th className="px-4 py-3">Foto</th>
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3">Apellido</th>
-                <th className="px-4 py-3">Pais</th>
+                <th onClick={() => { setSorting(SortBy.NAME) }} className="cursor-pointer px-4 py-3">Nombre</th>
+                <th onClick={() => { setSorting(SortBy.LAST) }} className="cursor-pointer px-4 py-3">Apellido</th>
+                <th onClick={() => { setSorting(SortBy.COUNTRY) }} className="cursor-pointer px-4 py-3">Pais</th>
                 <th className="px-4 py-3">Acciones</th>
               </tr>
             </thead>
